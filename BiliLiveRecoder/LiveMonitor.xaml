@@ -25,9 +25,11 @@
         <Label x:Name="RoomID" HorizontalAlignment="Left" Margin="509,44,0,0" VerticalAlignment="Top"/>
         <Label Content="直播间标题：" HorizontalAlignment="Left" Margin="430,76,0,0" VerticalAlignment="Top"/>
         <Label x:Name="RoomTitle" HorizontalAlignment="Left" Margin="517,76,0,0" VerticalAlignment="Top"/>
-        <Label Content="直播状态：" HorizontalAlignment="Left" Margin="430,108,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="Status" HorizontalAlignment="Left" Margin="517,108,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-        <Label Content="关闭本窗口即结束监视/录制" HorizontalAlignment="Left" Margin="408,185,0,0" Width="354" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="20" Background="{x:Null}" Foreground="Black" BorderThickness="3" BorderBrush="#FFF08649" Height="42" VerticalAlignment="Top"/>
+        <Label Content="直播状态：" HorizontalAlignment="Left" Margin="430,110,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Status" HorizontalAlignment="Left" Margin="517,108,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="14"/>
+        <Label Content="关闭本窗口即结束监视/录制" HorizontalAlignment="Left" Margin="405,203,0,0" Width="354" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="20" Background="{x:Null}" Foreground="Black" BorderThickness="3" BorderBrush="#FFF08649" Height="42" VerticalAlignment="Top"/>
         <TextBox x:Name="Sign" HorizontalAlignment="Left" Margin="74,163,0,27" TextWrapping="Wrap" Width="297" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" IsReadOnly="True"/>
+        <Label Content="程序状态：" HorizontalAlignment="Left" Margin="430,142,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="MonitorStatus" HorizontalAlignment="Left" Margin="517,140,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" Foreground="#FF5D33EA"/>
     </Grid>
 </Window>

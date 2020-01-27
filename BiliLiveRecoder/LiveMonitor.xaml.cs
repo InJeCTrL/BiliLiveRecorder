@@ -24,19 +24,11 @@ namespace BiliLiveRecoder
         /// </summary>
         private Thread th_Monitor;
         /// <summary>
-        /// 下载线程
-        /// </summary>
-        private Thread th_Download;
-        /// <summary>
         /// 直播流链接
         /// </summary>
         private string LiveLink = null;
         /// <summary>
-        /// 正在下载标志
-        /// </summary>
-        private int IsDownloading = 0;
-        /// <summary>
-        /// 用于下载的文件流
+        /// 文件流
         /// </summary>
         private FileStream fileStream;
         /// <summary>
@@ -84,11 +76,13 @@ namespace BiliLiveRecoder
             {
                 this.Status.Content = "正在直播";
                 this.Status.Foreground = Brushes.Green;
+                this.MonitorStatus.Content = "下载直播流";
             }
             else
             {
                 this.Status.Content = "下播";
                 this.Status.Foreground = Brushes.Red;
+                this.MonitorStatus.Content = "持续刷新监视";
             }
         }
         /// <summary>
@@ -101,24 +95,14 @@ namespace BiliLiveRecoder
             {
                 liveInfo = GetRoomInfo(userInfo.UID);
                 this.Dispatcher.Invoke(SetRoomInfo);
-                // 检测到正在直播且未在下载, 执行异步下载
-                if (liveInfo.LiveStatus == 1 && IsDownloading == 0)
+                // 检测到正在直播且未在下载, 执行下载
+                if (liveInfo.LiveStatus == 1)
                 {
                     LiveLink = GetDownloadLink();
                     if (LiveLink != null)
                     {
-                        th_Download = new Thread(new ThreadStart(DownloadLive));
-                        th_Download.Start();
-                        IsDownloading = 1;
+                        DownloadLive();
                     }
-                }
-                // 下播但仍处于下载状态
-                else if (liveInfo.LiveStatus == 0 && IsDownloading == 1)
-                {
-                    th_Download.Abort();
-                    fileStream.Dispose();
-                    fileStream.Close();
-                    IsDownloading = 0;
                 }
                 Thread.Sleep(10000);
             }
@@ -192,10 +176,10 @@ namespace BiliLiveRecoder
             {
                 Stream stream = client.OpenRead(LiveLink);
                 fileStream = new FileStream(userInfo.Name + "_" + DateTime.Now.ToString("yyyy年MM月dd日HH时mm分ss秒") + ".flv", FileMode.Append);
-                byte[] tBytes = new byte[8192];
+                byte[] tBytes = new byte[32768];
                 while (true)
                 {
-                    int n_read = stream.Read(tBytes, 0, 8192);
+                    int n_read = stream.Read(tBytes, 0, 32768);
                     if (n_read > 0)
                     {
                         fileStream.Write(tBytes, 0, n_read);
@@ -209,35 +193,17 @@ namespace BiliLiveRecoder
             }
             finally
             {
-                try
-                {
-                    fileStream.Dispose();
-                    fileStream.Close();
-                }
-                catch
-                {
-                    ;
-                }
-                IsDownloading = 0;
+                fileStream.Dispose();
+                fileStream.Close();
             }
         }
         /// <summary>
-        /// 窗口关闭前结束监视/下载线程
+        /// 窗口关闭前结束监视线程
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            try
-            {
-                th_Download.Abort();
-                fileStream.Dispose();
-                fileStream.Close();
-            }
-            catch
-            {
-                ;
-            }
             th_Monitor.Abort();
             --MonitorNum;
         }
