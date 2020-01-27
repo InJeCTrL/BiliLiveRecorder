@@ -176,15 +176,10 @@ namespace BiliLiveRecoder
             {
                 Stream stream = client.OpenRead(LiveLink);
                 fileStream = new FileStream(userInfo.Name + "_" + DateTime.Now.ToString("yyyy年MM月dd日HH时mm分ss秒") + ".flv", FileMode.Append);
-                byte[] tBytes = new byte[32768];
                 while (true)
                 {
-                    int n_read = stream.Read(tBytes, 0, 32768);
-                    if (n_read > 0)
-                    {
-                        fileStream.Write(tBytes, 0, n_read);
-                        fileStream.Flush();
-                    }
+                    stream.CopyTo(fileStream);
+                    fileStream.Flush();
                 }
             }
             catch
