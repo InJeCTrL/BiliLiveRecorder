@@ -102,6 +102,7 @@ namespace BiliLiveRecoder
                     if (LiveLink != null)
                     {
                         DownloadLive();
+                        continue;
                     }
                 }
                 Thread.Sleep(10000);
@@ -175,12 +176,9 @@ namespace BiliLiveRecoder
             try
             {
                 Stream stream = client.OpenRead(LiveLink);
+                stream.ReadTimeout = 1000;
                 fileStream = new FileStream(userInfo.Name + "_" + DateTime.Now.ToString("yyyy年MM月dd日HH时mm分ss秒") + ".flv", FileMode.Append);
-                while (true)
-                {
-                    stream.CopyTo(fileStream);
-                    fileStream.Flush();
-                }
+                stream.CopyTo(fileStream);
             }
             catch
             {
