@@ -4,7 +4,7 @@
 
 下载地址：
 
-### [BiliLiveRecoder](./BiliLiveRecoder/bin/Release/BiliLiveRecoder.exe)
+### [BiliLiveRecoder](https://injectrl.github.io/BiliLiveRecoder/BiliLiveRecoder/bin/Release/BiliLiveRecoder.exe)
 
 ---
 
