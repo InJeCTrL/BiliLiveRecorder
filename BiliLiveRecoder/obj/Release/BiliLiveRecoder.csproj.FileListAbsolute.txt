@@ -1,0 +1,16 @@
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\bin\Release\BiliLiveRecoder.exe.config
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\bin\Release\BiliLiveRecoder.exe
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\bin\Release\BiliLiveRecoder.pdb
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\LiveMonitor.g.cs
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\MainWindow.g.cs
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\App.g.cs
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\BiliLiveRecoder_MarkupCompile.cache
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\BiliLiveRecoder_MarkupCompile.lref
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\LiveMonitor.baml
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\MainWindow.baml
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\BiliLiveRecoder.g.resources
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\BiliLiveRecoder.Properties.Resources.resources
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\BiliLiveRecoder.csproj.GenerateResource.cache
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\BiliLiveRecoder.csproj.CoreCompileInputs.cache
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\BiliLiveRecoder.exe
+D:\Code Trunk\CSharp\BiliLiveRecoder\BiliLiveRecoder\obj\Release\BiliLiveRecoder.pdb
