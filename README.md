@@ -1,10 +1,10 @@
-﻿# BiliLiveRecoder
+﻿# BiliLiveRecorder
 
 > B站直播录制机
 
 下载地址：
 
-### [BiliLiveRecoder](https://injectrl.github.io/BiliLiveRecoder/BiliLiveRecoder/bin/Release/BiliLiveRecoder.exe)
+### [BiliLiveRecorder](https://injectrl.github.io/BiliLiveRecorder/BiliLiveRecorder/bin/Release/BiliLiveRecorder.exe)
 
 ---
 

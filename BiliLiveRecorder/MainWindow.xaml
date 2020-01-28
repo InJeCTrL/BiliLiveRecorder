@@ -1,0 +1,14 @@
+﻿<Window x:Class="BiliLiveRecorder.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BiliLiveRecorder"
+        mc:Ignorable="d"
+        Title="Bilibili直播录制机 1.0" Height="190.5" Width="324.5" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Closing="Window_Closing">
+    <Grid>
+        <TextBox x:Name="UID" Margin="0,34,35,0" TextWrapping="Wrap" Text="" HorizontalAlignment="Right" Width="160" Height="24" VerticalAlignment="Top"/>
+        <Label Content="主播UID：" Margin="32,33,0,0" Height="26" VerticalAlignment="Top" HorizontalAlignment="Left" Width="86"/>
+        <Button Content="锁定主播开播时实时录制" Margin="32,92,34,21" IsDefault="True" Click="Button_Click"/>
+    </Grid>
+</Window>

@@ -1,0 +1,16 @@
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\bin\Debug\BiliLiveRecorder.exe.config
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\bin\Debug\BiliLiveRecorder.exe
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\bin\Debug\BiliLiveRecorder.pdb
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\LiveMonitor.g.cs
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\MainWindow.g.cs
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\App.g.cs
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder_MarkupCompile.cache
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder_MarkupCompile.lref
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\LiveMonitor.baml
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\MainWindow.baml
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder.g.resources
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder.Properties.Resources.resources
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder.csproj.GenerateResource.cache
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder.csproj.CoreCompileInputs.cache
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder.exe
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder.pdb
