@@ -14,3 +14,4 @@ D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorde
 D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder.csproj.CoreCompileInputs.cache
 D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder.exe
 D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder.pdb
+D:\Code Trunk\CSharp\BiliLiveRecorder\BiliLiveRecorder\obj\Debug\BiliLiveRecorder.csprojAssemblyReference.cache

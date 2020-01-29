@@ -7,8 +7,11 @@
         mc:Ignorable="d"
         Title="Bilibili直播录制机 1.0" Height="190.5" Width="324.5" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Closing="Window_Closing">
     <Grid>
-        <TextBox x:Name="UID" Margin="0,34,35,0" TextWrapping="Wrap" Text="" HorizontalAlignment="Right" Width="160" Height="24" VerticalAlignment="Top"/>
-        <Label Content="主播UID：" Margin="32,33,0,0" Height="26" VerticalAlignment="Top" HorizontalAlignment="Left" Width="86"/>
+        <TextBox x:Name="SearchText" Margin="0,34,27,0" TextWrapping="Wrap" Text="" HorizontalAlignment="Right" Width="160" Height="24" VerticalAlignment="Top"/>
         <Button Content="锁定主播开播时实时录制" Margin="32,92,34,21" IsDefault="True" Click="Button_Click"/>
+        <ComboBox x:Name="SelectMode" HorizontalAlignment="Left" Margin="29,34,0,0" VerticalAlignment="Top" Width="86" Height="24" IsReadOnly="True" SelectedIndex="0">
+            <ComboBoxItem Content="主播昵称："/>
+            <ComboBoxItem Content="主播UID："/>
+        </ComboBox>
     </Grid>
 </Window>

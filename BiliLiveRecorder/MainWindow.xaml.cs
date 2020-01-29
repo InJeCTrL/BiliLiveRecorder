@@ -14,6 +14,41 @@ namespace BiliLiveRecorder
             InitializeComponent();
         }
         /// <summary>
+        /// 根据昵称获取UID
+        /// </summary>
+        /// <param name="NickName">用户昵称</param>
+        /// <returns>UID</returns>
+        private int GetUID(string NickName)
+        {
+            WebRequest request = WebRequest.Create("https://api.bilibili.com/x/web-interface/search/type?page=1&search_type=bili_user&changing=mid&__refresh__=true&__reload__=false&highlight=1&single_column=0&jsonp=jsonp&keyword=" + NickName);
+            WebResponse response = request.GetResponse();
+            Stream s = response.GetResponseStream();
+            StreamReader sr = new StreamReader(s);
+            // Json字符串
+            string str = sr.ReadToEnd();
+            sr.Dispose();
+            sr.Close();
+            s.Dispose();
+            s.Close();
+            response.Dispose();
+            response.Close();
+            // 第一个符合搜索条件的UID字符串首下标
+            int pos = str.IndexOf("\"type\":\"bili_user\",\"mid\":");
+            // 没有搜索到符合条件的用户
+            if (pos == -1)
+            {
+                return -1;
+            }
+            else
+            {
+                // 第一个符合搜索条件的UID字符串开头
+                str = str.Substring(pos + 25);
+                // UID字符串
+                str = str.Substring(0, str.IndexOf(','));
+                return int.Parse(str);
+            }
+        }
+        /// <summary>
         /// 根据UID获取用户信息
         /// </summary>
         /// <param name="UID">用户UID</param>
@@ -61,7 +96,29 @@ namespace BiliLiveRecorder
         /// <param name="e"></param>
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            UserInfo userInfo = GetUserInfo(UID.Text);
+            // 目标主播UID
+            string targetUID = string.Empty;
+            // 根据昵称查找
+            if (SelectMode.SelectedIndex == 0)
+            {
+                int tmpUID = GetUID(SearchText.Text);
+                // 查找失败
+                if (tmpUID == -1)
+                {
+                    MessageBox.Show("昵称无效, 请确认后输入！");
+                    return;
+                }
+                else
+                {
+                    targetUID = tmpUID.ToString();
+                }
+            }
+            // 根据UID查找
+            else
+            {
+                targetUID = SearchText.Text;
+            }
+            UserInfo userInfo = GetUserInfo(targetUID);
             // 用户有效, 启动监视窗口
             if (userInfo.Valid == true)
             {
