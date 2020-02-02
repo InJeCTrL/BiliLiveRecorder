@@ -343,13 +343,14 @@ namespace BiliLiveRecorder
                                 danmuStream.Write(Data, 0, Data.Length);
                                 danmuStream.Flush();
                             }
-                            // 开始PK停止本次下载分段
+                            // 开始PK后5s重新分段下载
                             else if (strJSON.StartsWith("{\"cmd\":\"PK_START\"") == true)
                             {
                                 StopDownload();
+                                Thread.Sleep(5000);
                                 break;
                             }
-                            // 结束整场PK后15s再重新分段下载
+                            // 结束整场PK后15s重新分段下载
                             else if (strJSON.StartsWith("{\"cmd\":\"PK_MIC_END\"") == true)
                             {
                                 StopDownload();
