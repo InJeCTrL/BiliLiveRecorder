@@ -96,10 +96,6 @@ namespace BiliLiveRecorder
             bitmap.UriSource = new Uri(userInfo.FaceURL);
             bitmap.EndInit();
             this.Face.Source = bitmap;
-            // 初始化下载直播流的webclient
-            client = new WebClient();
-            client.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 6.1; rv:73.0) Gecko/20100101 Firefox/73.0");
-            client.DownloadFileCompleted += Client_DownloadFileCompleted;
             // 实例化并启动监视线程
             th_Monitor = new Thread(new ThreadStart(RoomMonitor));
             th_Monitor.Start();
@@ -254,6 +250,10 @@ namespace BiliLiveRecorder
         /// </summary>
         private void DownloadLive()
         {
+            // 初始化下载直播流的webclient
+            client = new WebClient();
+            client.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 6.1; rv:73.0) Gecko/20100101 Firefox/73.0");
+            client.DownloadFileCompleted += Client_DownloadFileCompleted;
             StartTime = DateTime.Now;
             OutFileName = userInfo.Name + "_" + StartTime.ToString("yyyy年MM月dd日HH时mm分ss秒");
             client.DownloadFileAsync(new Uri(LiveLink), OutFileName + ".flv");
@@ -278,6 +278,7 @@ namespace BiliLiveRecorder
         private void StopDownload()
         {
             client.CancelAsync();
+            client.Dispose();
             OnAir = false;
         }
         /// <summary>
@@ -302,7 +303,11 @@ namespace BiliLiveRecorder
                         do
                         {
                             n_Read -= network.Read(Header, 16 - n_Read, n_Read);
-                        } while (n_Read > 0);
+                        } while (n_Read > 0 && OnAir);
+                        if (!OnAir)
+                        {
+                            break;
+                        }
                         // JSON字节数
                         int JSONSize = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(Header, 0)) - 16;
                         // JSON大小小等于0
@@ -317,7 +322,11 @@ namespace BiliLiveRecorder
                         do
                         {
                             n_Read -= network.Read(JSONData, JSONSize - n_Read, n_Read);
-                        } while (n_Read > 0);
+                        } while (n_Read > 0 && OnAir);
+                        if (!OnAir)
+                        {
+                            break;
+                        }
                         // 服务器传来命令
                         if (MSG_Type == 5)
                         {
@@ -333,6 +342,19 @@ namespace BiliLiveRecorder
                                 byte[] Data = Encoding.UTF8.GetBytes("<d p=\"" + (DateTime.Now - StartTime).TotalSeconds.ToString() + "," + Info0Items[1] + "," + Info0Items[2] + "," + Info0Items[3] + "," + Info0Items[4] + ",0," + Info0Items[7].Trim(new char[] { '"' }) + ",0\">" + msg + "</d>");
                                 danmuStream.Write(Data, 0, Data.Length);
                                 danmuStream.Flush();
+                            }
+                            // 开始PK停止本次下载分段
+                            else if (strJSON.StartsWith("{\"cmd\":\"PK_START\"") == true)
+                            {
+                                StopDownload();
+                                break;
+                            }
+                            // 结束整场PK后15s再重新分段下载
+                            else if (strJSON.StartsWith("{\"cmd\":\"PK_MIC_END\"") == true)
+                            {
+                                StopDownload();
+                                Thread.Sleep(15000);
+                                break;
                             }
                         }
                     }
