@@ -55,7 +55,7 @@ namespace BiliLiveRecorder
         /// </summary>
         private bool OnAir = false;
         /// <summary>
-        /// 表示是否停止监视
+        /// 表示是否退出监视
         /// </summary>
         private bool Exit = false;
         /// <summary>
@@ -130,7 +130,7 @@ namespace BiliLiveRecorder
         /// </summary>
         private void RoomMonitor()
         {
-            // 每隔10s获取一次直播间状态, 若直播开始则下载
+            // 每隔3s获取一次直播间状态, 若直播开始则下载
             while (Exit == false)
             {
                 liveInfo = GetRoomInfo(userInfo.UID);
@@ -146,7 +146,7 @@ namespace BiliLiveRecorder
                         continue;
                     }
                 }
-                Thread.Sleep(10000);
+                Thread.Sleep(3000);
             }
         }
         /// <summary>
@@ -253,7 +253,7 @@ namespace BiliLiveRecorder
         /// 下载函数
         /// </summary>
         private void DownloadLive()
-        {         
+        {
             StartTime = DateTime.Now;
             OutFileName = userInfo.Name + "_" + StartTime.ToString("yyyy年MM月dd日HH时mm分ss秒");
             client.DownloadFileAsync(new Uri(LiveLink), OutFileName + ".flv");
@@ -261,10 +261,7 @@ namespace BiliLiveRecorder
             danmuStream.Write(Encoding.UTF8.GetBytes(XMLHeader), 0, XMLHeader.Length);
             danmuStream.Dispose();
             danmuStream.Close();
-            while (OnAir)
-            {
-                DanMuDownloader();
-            }
+            DanMuDownloader();
         }
         /// <summary>
         /// 直播流下载完成(下播)
@@ -297,8 +294,6 @@ namespace BiliLiveRecorder
                 FileStream danmuStream = new FileStream(OutFileName + ".xml", FileMode.Append);
                 // 帧头部16字节
                 byte[] Header = new byte[16];
-                // 循环获取结束后是否添加结束标记
-                bool AddFooter = true;
                 try
                 {
                     while (OnAir)
@@ -306,7 +301,7 @@ namespace BiliLiveRecorder
                         int n_Read = 16;
                         do
                         {
-                            n_Read -= network.Read(Header, 0, n_Read);
+                            n_Read -= network.Read(Header, 16 - n_Read, n_Read);
                         } while (n_Read > 0);
                         // JSON字节数
                         int JSONSize = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(Header, 0)) - 16;
@@ -315,19 +310,13 @@ namespace BiliLiveRecorder
                         {
                             continue;
                         }
-                        // JSON大小过大
-                        else if (JSONSize >= 10000)
-                        {
-                            AddFooter = false;
-                            break;
-                        }
                         // 消息类型
                         int MSG_Type = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(Header, 8));
                         byte[] JSONData = new byte[JSONSize];
                         n_Read = JSONSize;
                         do
                         {
-                            n_Read -= network.Read(JSONData, 0, n_Read);
+                            n_Read -= network.Read(JSONData, JSONSize - n_Read, n_Read);
                         } while (n_Read > 0);
                         // 服务器传来命令
                         if (MSG_Type == 5)
@@ -347,17 +336,17 @@ namespace BiliLiveRecorder
                             }
                         }
                     }
-                    if (AddFooter)
-                    {
-                        danmuStream.Write(Encoding.UTF8.GetBytes(XMLFooter), 0, XMLFooter.Length);
-                    }
-                    danmuStream.Close();
                 }
                 catch(Exception)
                 {
-                    danmuStream.Close();
+                    ;
                     // Console.WriteLine(e.StackTrace);
-                    // throw;
+                    // throw e;
+                }
+                finally
+                {
+                    danmuStream.Write(Encoding.UTF8.GetBytes(XMLFooter), 0, XMLFooter.Length);
+                    danmuStream.Close();
                 }
             }
         }
@@ -368,11 +357,11 @@ namespace BiliLiveRecorder
         /// <param name="e"></param>
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            Exit = true;
             if (OnAir)
             {
                 StopDownload();
             }
-            Exit = true;
             th_Monitor.Join();
             client.Dispose();
             --MonitorNum;
