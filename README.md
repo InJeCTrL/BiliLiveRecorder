@@ -62,4 +62,28 @@
 
 	6. 结合直播时抓包结果连接上述弹幕服务器，下为握手包示例，JSON中可保留uid与roomid
 
+		握手包:
+
 		![handshake](./handshake.png)
+
+		准备进入PK:
+
+		![PK_PRE](./PK_PRE.png)
+
+		开始PK:
+
+		![PK_START](./PK_START.png)
+
+		PK第一段结束:
+
+		![PK_END](./PK_END.png)
+
+		PK惩罚阶段信息:
+
+		![PK_SETTLE](./PK_SETTLE.png)
+
+		PK连麦结束:
+
+		![PK_MIC_END](./PK_MIC_END.png)
+
+		程序将在 开始PK时 与 PK连麦结束后15秒 分段
