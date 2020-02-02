@@ -16,6 +16,8 @@
 
 	3. 可使用 UID 或 用户昵称 搜索主播
 
+	4. 支持同时下载直播弹幕(XML)
+
 * 界面预览
 
 	![Start](./view1.png)
@@ -53,3 +55,11 @@
 		用户搜索条件做相应修改后：
 
 		https://api.bilibili.com/x/web-interface/search/type?page=1&search_type=bili_user&changing=mid&__refresh__=true&__reload__=false&highlight=1&single_column=0&jsonp=jsonp&keyword={搜索条件}
+
+	5. 直播间页面可找到弹幕服务器获取接口
+
+		https://api.live.bilibili.com/room/v1/Danmu/getConf?room_id={直播间ID}
+
+	6. 结合直播时抓包结果连接上述弹幕服务器，下为握手包示例，JSON中可保留uid与roomid
+
+		![handshake](./handshake.png)
