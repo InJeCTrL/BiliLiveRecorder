@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Windows;
 
@@ -9,6 +10,10 @@ namespace BiliLiveRecorder
     /// </summary>
     public partial class MainWindow : Window
     {
+        /// <summary>
+        /// 监视窗口列表
+        /// </summary>
+        List<LiveMonitor> MonitorList = new List<LiveMonitor>();
         public MainWindow()
         {
             InitializeComponent();
@@ -123,6 +128,7 @@ namespace BiliLiveRecorder
             if (userInfo.Valid == true)
             {
                 LiveMonitor liveMonitor = new LiveMonitor(userInfo);
+                MonitorList.Add(liveMonitor);
                 liveMonitor.Show();
             }
             else
@@ -141,6 +147,10 @@ namespace BiliLiveRecorder
             {
                 if (MessageBox.Show("当前有未结束的监视/录制任务, 是否直接结束程序？", "检测到任务", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                 {
+                    foreach (var wnd in MonitorList)
+                    {
+                        wnd.Close();
+                    }
                     Application.Current.Shutdown();
                 }
                 else

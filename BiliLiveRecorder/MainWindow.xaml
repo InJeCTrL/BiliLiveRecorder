@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BiliLiveRecorder"
         mc:Ignorable="d"
-        Title="Bilibili直播录制机 1.0" Height="190.5" Width="324.5" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Closing="Window_Closing">
+        Title="Bilibili直播录制机" Height="190.5" Width="324.5" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Closing="Window_Closing">
     <Grid>
         <TextBox x:Name="SearchText" Margin="0,34,27,0" TextWrapping="Wrap" Text="" HorizontalAlignment="Right" Width="160" Height="24" VerticalAlignment="Top"/>
         <Button Content="锁定主播开播时实时录制" Margin="32,92,34,21" IsDefault="True" Click="Button_Click"/>
