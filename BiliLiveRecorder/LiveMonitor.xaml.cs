@@ -386,7 +386,6 @@ namespace BiliLiveRecorder
                 StopDownload();
             }
             th_Monitor.Join();
-            client.Dispose();
             --MonitorNum;
             GC.Collect();
         }
