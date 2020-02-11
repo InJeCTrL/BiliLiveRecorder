@@ -18,6 +18,10 @@
 
 	4. 支持同时下载直播弹幕(XML)
 
+	5. 主播连麦、断开PK时自动分段（不稳定）
+
+	6. 主播连麦PK时双方共同录制防止某方信号问题导致缺漏（不稳定）
+
 * 界面预览
 
 	![Start](./view1.png)
@@ -87,3 +91,9 @@
 		![PK_MIC_END](./PK_MIC_END.png)
 
 		程序将在 开始PK后5秒 与 PK连麦结束后15秒 分段
+
+	7. 在直播间信息接口（上述1）中可找到PK_ID, 直播间页面可找到PK信息接口
+
+		https://api.live.bilibili.com/av/v1/Pk/getInfoById?pk_id={PK_ID}
+
+		根据PK信息接口找到与当前主播连麦的对端主播, 实现双端录制
