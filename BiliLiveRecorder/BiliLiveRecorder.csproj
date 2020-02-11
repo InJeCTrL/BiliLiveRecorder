@@ -62,6 +62,8 @@
     <Compile Include="LiveMonitor.xaml.cs">
       <DependentUpon>LiveMonitor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="LiveVideoDownloader.cs" />
+    <Compile Include="PKInfo.cs" />
     <Compile Include="UserInfo.cs" />
     <Page Include="LiveMonitor.xaml">
       <SubType>Designer</SubType>

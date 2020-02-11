@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BiliLiveRecorder
+﻿namespace BiliLiveRecorder
 {
     /// <summary>
     /// 直播间信息
@@ -12,9 +6,9 @@ namespace BiliLiveRecorder
     public class LiveInfo
     {
         /// <summary>
-        /// 直播状态
+        /// 正在直播状态
         /// </summary>
-        public int LiveStatus { get; set; }
+        public bool OnAir{ get; set; }
         /// <summary>
         /// 直播间标题
         /// </summary>
@@ -23,5 +17,9 @@ namespace BiliLiveRecorder
         /// 直播间ID
         /// </summary>
         public string RoomID { get; set; }
+        /// <summary>
+        /// 直播视频流链接
+        /// </summary>
+        public string LiveVideoLink { get; set; }
     }
 }

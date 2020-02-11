@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -35,37 +36,21 @@ namespace BiliLiveRecorder
         /// </summary>
         private readonly string XMLFooter = "</i>";
         /// <summary>
-        /// 直播间监视任务数
+        /// 监视窗口列表
         /// </summary>
-        public static int MonitorNum = 0;
+        public static List<LiveMonitor> MonitorList = new List<LiveMonitor>();
+        /// <summary>
+        /// 是否正在录制
+        /// </summary>
+        private bool IsRecording = false;
+        /// <summary>
+        /// 是否退出监视
+        /// </summary>
+        private bool Exit = false;
         /// <summary>
         /// 监视线程
         /// </summary>
         private Thread th_Monitor;
-        /// <summary>
-        /// 用于下载直播流和弹幕的webclient
-        /// </summary>
-        private WebClient client;
-        /// <summary>
-        /// 开始录制的时间
-        /// </summary>
-        private DateTime StartTime;
-        /// <summary>
-        /// 表示是否正在直播
-        /// </summary>
-        private bool OnAir = false;
-        /// <summary>
-        /// 表示是否退出监视
-        /// </summary>
-        private bool Exit = false;
-        /// <summary>
-        /// 输出文件名
-        /// </summary>
-        private string OutFileName = null;
-        /// <summary>
-        /// 直播流链接
-        /// </summary>
-        private string LiveLink = null;
         /// <summary>
         /// 传递到的用户信息对象
         /// </summary>
@@ -75,13 +60,29 @@ namespace BiliLiveRecorder
         /// </summary>
         private LiveInfo liveInfo;
         /// <summary>
+        /// 直播视频流下载器
+        /// </summary>
+        private LiveVideoDownloader videoDownloader;
+        /// <summary>
+        /// PK对端直播视频流下载器
+        /// </summary>
+        private LiveVideoDownloader PKDownloader;
+        /// <summary>
+        /// 用于下载弹幕的网络流
+        /// </summary>
+        private NetworkStream network;
+        /// <summary>
+        /// 开始录制时间
+        /// </summary>
+        private DateTime StartTime;
+        /// <summary>
         /// 直播监视窗口
         /// </summary>
         /// <param name="userInfo">用户信息对象</param>
         public LiveMonitor(UserInfo userInfo)
         {
             InitializeComponent();
-            ++MonitorNum;
+            MonitorList.Add(this);
             SetRoomInfo += new RecvRoomInfo(LiveMonitor_SetRoomInfo);
             this.userInfo = userInfo;
             this.Title = "正在监视直播间_" + userInfo.Name;
@@ -108,7 +109,7 @@ namespace BiliLiveRecorder
             this.RoomTitle.Content = liveInfo.RoomTitle;
             this.RoomID.Content = liveInfo.RoomID;
             // 正在直播
-            if (liveInfo.LiveStatus == 1)
+            if (liveInfo.OnAir)
             {
                 this.Status.Content = "正在直播";
                 this.Status.Foreground = Brushes.Green;
@@ -122,22 +123,50 @@ namespace BiliLiveRecorder
             }
         }
         /// <summary>
+        /// 获取get请求的传回数据
+        /// </summary>
+        /// <param name="URL">链接</param>
+        /// <returns>传回页面字符串</returns>
+        private string FetchGetResponse(string URL)
+        {
+            try
+            {
+                WebRequest request = WebRequest.Create(URL);
+                request.Headers.Add(HttpRequestHeader.CacheControl, "max-age=0");
+                WebResponse response = request.GetResponse();
+                Stream s = response.GetResponseStream();
+                StreamReader sr = new StreamReader(s);
+                string str = sr.ReadToEnd();
+                sr.Dispose();
+                sr.Close();
+                s.Dispose();
+                s.Close();
+                response.Dispose();
+                response.Close();
+                return str;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+        /// <summary>
         /// 监视函数
         /// </summary>
         private void RoomMonitor()
         {
             // 每隔3s获取一次直播间状态, 若直播开始则下载
-            while (Exit == false)
+            while (!Exit)
             {
                 liveInfo = GetRoomInfo(userInfo.UID);
                 this.Dispatcher.Invoke(SetRoomInfo);
-                // 检测到正在直播且未在下载, 执行下载
-                if (liveInfo.LiveStatus == 1)
+                // 检测到正在直播执行下载
+                if (liveInfo.OnAir)
                 {
-                    LiveLink = GetDownloadLink();
-                    if (LiveLink != null)
+                    liveInfo.LiveVideoLink = GetDownloadLink(liveInfo.RoomID);
+                    if (liveInfo.LiveVideoLink != null)
                     {
-                        OnAir = true;
+                        IsRecording = true;
                         DownloadLive();
                         continue;
                     }
@@ -152,23 +181,13 @@ namespace BiliLiveRecorder
         /// <returns>直播间信息对象</returns>
         private LiveInfo GetRoomInfo(int UID)
         {
-            WebRequest request = WebRequest.Create("https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid=" + userInfo.UID.ToString());
-            WebResponse response = request.GetResponse();
-            Stream s = response.GetResponseStream();
-            StreamReader sr = new StreamReader(s);
             // Json字符串
-            string str = sr.ReadToEnd();
-            sr.Dispose();
-            sr.Close();
-            s.Dispose();
-            s.Close();
-            response.Dispose();
-            response.Close();
+            string str = FetchGetResponse("https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid=" + userInfo.UID.ToString());
             // 分离的直播间信息
             string[] items = str.Split(new char[] { ',', '{', '}' }, System.StringSplitOptions.RemoveEmptyEntries);
             LiveInfo liveInfo = new LiveInfo
                                 {
-                                    LiveStatus = int.Parse(items[6].Substring(13)),
+                                    OnAir = items[6].Substring(13) == "1" ? true : false,
                                     RoomTitle = items[8].Substring(8).Trim(new char[] { '"' }),
                                     RoomID = items[11].Substring(9)
                                 };
@@ -178,30 +197,15 @@ namespace BiliLiveRecorder
         /// 获得直播流下载链接
         /// </summary>
         /// <returns>成功获取返回链接, 失败返回null</returns>
-        private string GetDownloadLink()
+        private string GetDownloadLink(string RoomID)
         {
-            try
+            string str = FetchGetResponse("https://api.live.bilibili.com/room/v1/Room/playUrl?cid=" + RoomID);
+            if (str != null)
             {
-                WebRequest request = WebRequest.Create("https://api.live.bilibili.com/room/v1/Room/playUrl?cid=" + liveInfo.RoomID);
-                WebResponse response = request.GetResponse();
-                Stream s = response.GetResponseStream();
-                StreamReader sr = new StreamReader(s);
-                // Json字符串
-                string str = sr.ReadToEnd();
-                sr.Dispose();
-                sr.Close();
-                s.Dispose();
-                s.Close();
-                response.Dispose();
-                response.Close();
                 // 通过特征字符串查找到的直播流地址
                 str = str.Substring(str.IndexOf("\"durl\":[{\"url\":\"") + 16).Split(new char[] { '"' })[0].Replace("\\u0026", "&");
-                return str;
             }
-            catch
-            {
-                return null;
-            }
+            return str;
         }
         /// <summary>
         /// 发送直播间信息到弹幕服务器
@@ -232,7 +236,7 @@ namespace BiliLiveRecorder
             {
                 try
                 {
-                    while (OnAir)
+                    while (IsRecording)
                     {
                         network.WriteAsync(new byte[] { 0x00, 0x00, 0x00, 0x10, 0x00, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01 }, 0, 16);
                         network.FlushAsync();
@@ -246,50 +250,141 @@ namespace BiliLiveRecorder
             });
         }
         /// <summary>
+        /// 获取本场PKID
+        /// </summary>
+        /// <param name="RoomID">房间号</param>
+        /// <returns>PKID</returns>
+        private string GetPKID(string RoomID)
+        {
+            string str = FetchGetResponse("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=" + RoomID);
+            int i_pkid = str.IndexOf("{\"pk_id\":");
+            // 不在PK状态
+            if (i_pkid == -1)
+            {
+                return string.Empty;
+            }
+            str = str.Substring(i_pkid + 9);
+            str = str.Substring(0, str.IndexOf("},"));
+            return str;
+        }
+        /// <summary>
+        /// 获取PK对端信息
+        /// </summary>
+        /// <param name="PKID">PK编号</param>
+        /// <returns>对端信息</returns>
+        private PKInfo GetPKMatch(string PKID)
+        {
+            string str = FetchGetResponse("https://api.live.bilibili.com/av/v1/Pk/getInfoById?pk_id=" + PKID);
+            string FirstUID = str.Substring(str.IndexOf("\"uid\":") + 6);
+            FirstUID = FirstUID.Substring(0, FirstUID.IndexOf(",\""));
+            // 第一个UID不是对端用户, 找第二个UID
+            if (FirstUID.Equals(userInfo.UID.ToString()))
+            {
+                // 第二个UID
+                string SecondUID = str.Substring(str.LastIndexOf("\"uid\":") + 6);
+                SecondUID = SecondUID.Substring(0, SecondUID.IndexOf(",\""));
+                // 房间号
+                string match_id = str.Substring(str.IndexOf("\"match_id\":") + 11);
+                match_id = match_id.Substring(0, match_id.IndexOf(",\""));
+                // 昵称
+                string UName = str.Substring(str.LastIndexOf("\"uname\":\"") + 9);
+                UName = UName.Substring(0, UName.IndexOf("\",\""));
+                return new PKInfo
+                {
+                    UID = int.Parse(SecondUID),
+                    RoomID = match_id,
+                    Name = UName
+                };
+            }
+            // 第一个UID是对端用户
+            else
+            {
+                // 房间号
+                string Init_id = str.Substring(str.IndexOf("\"init_id\":") + 10);
+                Init_id = Init_id.Substring(0, Init_id.IndexOf(",\""));
+                // 昵称
+                string UName = str.Substring(str.IndexOf("\"uname\":\"") + 9);
+                UName = UName.Substring(0, UName.IndexOf("\",\""));
+                return new PKInfo
+                {
+                    UID = int.Parse(FirstUID),
+                    RoomID = Init_id,
+                    Name = UName
+                };
+            }
+        }
+        /// <summary>
+        /// 尝试录制对端PK画面
+        /// </summary>
+        private void RecordOtherPK()
+        {
+            // PK对端仍在录制, 本端重试不重录对端
+            if (PKDownloader == null || PKDownloader.IsDownloading == false)
+            {
+                // 获取PK编号
+                string PK_ID = GetPKID(liveInfo.RoomID);
+                // 若当前直播间正在PK则对端一并录制
+                if (PK_ID != string.Empty)
+                {
+                    // 获取PK对端数据
+                    PKInfo pKInfo = GetPKMatch(PK_ID);
+                    string PKLiveURL = GetDownloadLink(pKInfo.RoomID);
+                    if (PKLiveURL != null)
+                    {
+                        PKDownloader = new LiveVideoDownloader(PKLiveURL, StartTime, "【PK双录】" + pKInfo.Name);
+                        PKDownloader.DownloadCompleted += PKDownloader_DownloadCompleted;
+                        PKDownloader.Start();
+                    }
+                }
+            }
+        }
+        /// <summary>
         /// 下载函数
         /// </summary>
         private void DownloadLive()
         {
-            // 初始化下载直播流的webclient
-            client = new WebClient();
-            client.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 6.1; rv:73.0) Gecko/20100101 Firefox/73.0");
-            client.DownloadFileCompleted += Client_DownloadFileCompleted;
             StartTime = DateTime.Now;
-            OutFileName = userInfo.Name + "_" + StartTime.ToString("yyyy年MM月dd日HH时mm分ss秒");
-            client.DownloadFileAsync(new Uri(LiveLink), OutFileName + ".flv");
+            videoDownloader = new LiveVideoDownloader(liveInfo.LiveVideoLink, StartTime, userInfo.Name);
+            videoDownloader.DownloadCompleted += VideoDownloader_DownloadCompleted;
+            string OutFileName = videoDownloader.Start();
+            RecordOtherPK();
             FileStream danmuStream = new FileStream(OutFileName + ".xml", FileMode.Append);
             danmuStream.Write(Encoding.UTF8.GetBytes(XMLHeader), 0, XMLHeader.Length);
             danmuStream.Dispose();
             danmuStream.Close();
-            DanMuDownloader();
+            DanMuDownloader(OutFileName);
         }
         /// <summary>
-        /// 直播流下载完成(下播)
+        /// PK对端下载结束
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Client_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        private void PKDownloader_DownloadCompleted(object sender, EventArgs e)
         {
-            StopDownload();
+            if (!Exit)
+            {
+                RecordOtherPK();
+            }
         }
         /// <summary>
-        /// 停止下载直播流与弹幕
+        /// 直播视频流下载结束
         /// </summary>
-        private void StopDownload()
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void VideoDownloader_DownloadCompleted(object sender, EventArgs e)
         {
-            client.CancelAsync();
-            client.Dispose();
-            OnAir = false;
+            IsRecording = false;
+            network.Close();
         }
         /// <summary>
         /// 弹幕下载函数
         /// </summary>
-        /// <param name="network">弹幕接口网络流</param>
-        private void DanMuDownloader()
+        /// <param name="OutFileName">输出文件名</param>
+        private void DanMuDownloader(string OutFileName)
         {
             using (TcpClient tcpClient = new TcpClient("broadcastlv.chat.bilibili.com", 2243))
             {
-                NetworkStream network = tcpClient.GetStream();
+                network = tcpClient.GetStream();
                 SendRoomInfo(network, liveInfo.RoomID);
                 StartPingPong(network);
                 FileStream danmuStream = new FileStream(OutFileName + ".xml", FileMode.Append);
@@ -297,14 +392,14 @@ namespace BiliLiveRecorder
                 byte[] Header = new byte[16];
                 try
                 {
-                    while (OnAir)
+                    while (IsRecording)
                     {
                         int n_Read = 16;
                         do
                         {
                             n_Read -= network.Read(Header, 16 - n_Read, n_Read);
-                        } while (n_Read > 0 && OnAir);
-                        if (!OnAir)
+                        } while (n_Read > 0 && IsRecording);
+                        if (!IsRecording)
                         {
                             break;
                         }
@@ -322,8 +417,8 @@ namespace BiliLiveRecorder
                         do
                         {
                             n_Read -= network.Read(JSONData, JSONSize - n_Read, n_Read);
-                        } while (n_Read > 0 && OnAir);
-                        if (!OnAir)
+                        } while (n_Read > 0 && IsRecording);
+                        if (!IsRecording)
                         {
                             break;
                         }
@@ -346,25 +441,24 @@ namespace BiliLiveRecorder
                             // 开始PK后5s重新分段下载
                             else if (strJSON.StartsWith("{\"cmd\":\"PK_START\"") == true)
                             {
-                                StopDownload();
+                                videoDownloader.Stop();
                                 Thread.Sleep(5000);
                                 break;
                             }
                             // 结束整场PK后15s重新分段下载
                             else if (strJSON.StartsWith("{\"cmd\":\"PK_MIC_END\"") == true)
                             {
-                                StopDownload();
+                                videoDownloader.Stop();
+                                PKDownloader.Stop();
                                 Thread.Sleep(15000);
                                 break;
                             }
                         }
                     }
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     ;
-                    // Console.WriteLine(e.StackTrace);
-                    // throw e;
                 }
                 finally
                 {
@@ -374,20 +468,31 @@ namespace BiliLiveRecorder
             }
         }
         /// <summary>
+        /// 结束监视、录制
+        /// </summary>
+        public void CloseMonitor()
+        {
+            Exit = true;
+            if (PKDownloader != null)
+            {
+                PKDownloader.Stop();
+            }
+            if (IsRecording)
+            {
+                videoDownloader.Stop();
+                IsRecording = false;
+                network.Close();
+            }
+        }
+        /// <summary>
         /// 窗口关闭前结束监视线程
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Exit = true;
-            if (OnAir)
-            {
-                StopDownload();
-            }
-            th_Monitor.Join();
-            --MonitorNum;
-            GC.Collect();
+            CloseMonitor();
+            MonitorList.Remove(this);
         }
     }
 }
