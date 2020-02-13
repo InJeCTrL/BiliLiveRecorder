@@ -355,7 +355,7 @@ namespace BiliLiveRecorder
             DanMuDownloader(OutFileName);
         }
         /// <summary>
-        /// PK对端下载结束
+        /// PK对端视频流下载自行结束（非主动调用Stop）
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -367,7 +367,7 @@ namespace BiliLiveRecorder
             }
         }
         /// <summary>
-        /// 直播视频流下载结束
+        /// 直播视频流下载自行结束（非主动调用Stop）
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -375,6 +375,45 @@ namespace BiliLiveRecorder
         {
             IsRecording = false;
             network.Close();
+        }
+        /// <summary>
+        /// 等待直播视频流地址切换
+        /// </summary>
+        private void WaitForSwitch()
+        {
+            do
+            {
+                if (!GetDownloadLink(liveInfo.RoomID).Equals(liveInfo.RoomID))
+                {
+                    break;
+                }
+            } while (true);
+        }
+        /// <summary>
+        /// 等待进入PK开始状态
+        /// </summary>
+        private void WaitForPKStart()
+        {
+            do
+            {
+                if (!GetPKID(liveInfo.RoomID).Equals(string.Empty))
+                {
+                    break;
+                }
+            } while (true);
+        }
+        /// <summary>
+        /// 等待进入PK结束状态
+        /// </summary>
+        private void WaitForPKComplete()
+        {
+            do
+            {
+                if (GetPKID(liveInfo.RoomID).Equals(string.Empty))
+                {
+                    break;
+                }
+            } while (true);
         }
         /// <summary>
         /// 弹幕下载函数
@@ -438,18 +477,24 @@ namespace BiliLiveRecorder
                                 danmuStream.Write(Data, 0, Data.Length);
                                 danmuStream.Flush();
                             }
-                            // 开始PK后5s重新分段下载
+                            // 开始PK后5s再重新分段下载
                             else if (strJSON.StartsWith("{\"cmd\":\"PK_START\"") == true)
                             {
                                 videoDownloader.Stop();
+                                //WaitForSwitch();
+                                //WaitForPKStart();
+                                network.Close();
                                 Thread.Sleep(5000);
                                 break;
                             }
-                            // 结束整场PK后15s重新分段下载
+                            // 结束整场PK后15s再重新分段下载
                             else if (strJSON.StartsWith("{\"cmd\":\"PK_MIC_END\"") == true)
                             {
                                 videoDownloader.Stop();
                                 PKDownloader.Stop();
+                                //WaitForSwitch();
+                                //WaitForPKComplete();
+                                network.Close();
                                 Thread.Sleep(15000);
                                 break;
                             }
@@ -464,6 +509,7 @@ namespace BiliLiveRecorder
                 {
                     danmuStream.Write(Encoding.UTF8.GetBytes(XMLFooter), 0, XMLFooter.Length);
                     danmuStream.Close();
+                    IsRecording = false;
                 }
             }
         }

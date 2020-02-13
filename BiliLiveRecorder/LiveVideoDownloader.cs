@@ -37,7 +37,7 @@ namespace BiliLiveRecorder
         /// <summary>
         /// 是否正在下载
         /// </summary>
-        public bool IsDownloading = false;
+        public bool IsDownloading { get; private set; }
         /// <summary>
         /// 初始化直播视频流下载器
         /// </summary>
@@ -46,6 +46,7 @@ namespace BiliLiveRecorder
         /// <param name="UserName">主播昵称</param>
         public LiveVideoDownloader(string LiveVideoLink, DateTime StartTime, string UserName)
         {
+            IsDownloading = false;
             SetVideoLink(LiveVideoLink);
             SetStartTime(StartTime);
             SetUserName(UserName);
@@ -108,8 +109,14 @@ namespace BiliLiveRecorder
         /// <param name="e"></param>
         private void WebClient_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
         {
-            Stop();
-            OnDownloadCompleted(null);
+            // 被外部执行Stop停止下载不触发下载完成事件
+            // 文件下载自行结束, 触发下载完成事件
+            if (IsDownloading)
+            {
+                webClient.Dispose();
+                IsDownloading = false;
+                OnDownloadCompleted(null);
+            }
         }
         /// <summary>
         /// 开始下载
@@ -132,9 +139,9 @@ namespace BiliLiveRecorder
         {
             if (IsDownloading)
             {
+                IsDownloading = false;
                 webClient.CancelAsync();
                 webClient.Dispose();
-                IsDownloading = false;
             }
         }
         /// <summary>
