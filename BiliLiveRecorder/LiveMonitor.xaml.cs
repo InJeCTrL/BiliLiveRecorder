@@ -279,7 +279,7 @@ namespace BiliLiveRecorder
             {
                 return string.Empty;
             }
-            str = str.Substring(i_pkid + 9);
+            str = str.Substring(i_pkid + 8);
             str = str.Substring(0, str.IndexOfAny(new char[] { '}', ',' }));
             return str;
         }
