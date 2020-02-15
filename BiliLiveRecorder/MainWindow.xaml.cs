@@ -34,7 +34,7 @@ namespace BiliLiveRecorder
             response.Dispose();
             response.Close();
             // 第一个符合搜索条件的UID字符串首下标
-            int pos = str.IndexOf("\"type\":\"bili_user\",\"mid\":");
+            int pos = str.IndexOf("\"mid\":");
             // 没有搜索到符合条件的用户
             if (pos == -1)
             {
@@ -43,9 +43,9 @@ namespace BiliLiveRecorder
             else
             {
                 // 第一个符合搜索条件的UID字符串开头
-                str = str.Substring(pos + 25);
+                str = str.Substring(pos + 6);
                 // UID字符串
-                str = str.Substring(0, str.IndexOf(','));
+                str = str.Substring(0, str.IndexOfAny(new char[] { ',', '}' }));
                 return int.Parse(str);
             }
         }

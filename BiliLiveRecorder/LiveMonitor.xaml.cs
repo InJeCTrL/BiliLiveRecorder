@@ -183,14 +183,29 @@ namespace BiliLiveRecorder
         {
             // Json字符串
             string str = FetchGetResponse("https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid=" + userInfo.UID.ToString());
-            // 分离的直播间信息
-            string[] items = str.Split(new char[] { ',', '{', '}' }, System.StringSplitOptions.RemoveEmptyEntries);
             LiveInfo liveInfo = new LiveInfo
-                                {
-                                    OnAir = items[6].Substring(13) == "1" ? true : false,
-                                    RoomTitle = items[8].Substring(8).Trim(new char[] { '"' }),
-                                    RoomID = items[11].Substring(9)
-                                };
+            {
+                OnAir = false,
+                RoomTitle = "",
+                RoomID = ""
+            };
+            if (str != null)
+            {
+                // 直播状态
+                string liveStatus = str.Substring(str.IndexOf("\"liveStatus\":") + 13, 1);
+                if (liveStatus == "1")
+                {
+                    liveInfo.OnAir = true;
+                }
+                // 直播间名称
+                string RoomTitle = str.Substring(str.IndexOf("\"title\":\"") + 9);
+                RoomTitle = RoomTitle.Substring(0, RoomTitle.IndexOf('"'));
+                liveInfo.RoomTitle = RoomTitle;
+                // 直播间ID
+                string RoomID = str.Substring(str.IndexOf("\"roomid\":") + 9);
+                RoomID = RoomID.Substring(0, RoomID.IndexOfAny(new char[] { ',', '}' }));
+                liveInfo.RoomID = RoomID;
+            }
             return liveInfo;
         }
         /// <summary>
@@ -203,7 +218,8 @@ namespace BiliLiveRecorder
             if (str != null)
             {
                 // 通过特征字符串查找到的直播流地址
-                str = str.Substring(str.IndexOf("\"durl\":[{\"url\":\"") + 16).Split(new char[] { '"' })[0].Replace("\\u0026", "&");
+                str = str.Substring(str.IndexOf("\"durl\":[{\"url\":\"") + 16);
+                str = str.Substring(0, str.IndexOf('"')).Replace("\\u0026", "&");
             }
             return str;
         }
@@ -257,14 +273,14 @@ namespace BiliLiveRecorder
         private string GetPKID(string RoomID)
         {
             string str = FetchGetResponse("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=" + RoomID);
-            int i_pkid = str.IndexOf("{\"pk_id\":");
+            int i_pkid = str.IndexOf("\"pk_id\":");
             // 不在PK状态
             if (i_pkid == -1)
             {
                 return string.Empty;
             }
             str = str.Substring(i_pkid + 9);
-            str = str.Substring(0, str.IndexOf("},"));
+            str = str.Substring(0, str.IndexOfAny(new char[] { '}', ',' }));
             return str;
         }
         /// <summary>
@@ -276,19 +292,19 @@ namespace BiliLiveRecorder
         {
             string str = FetchGetResponse("https://api.live.bilibili.com/av/v1/Pk/getInfoById?pk_id=" + PKID);
             string FirstUID = str.Substring(str.IndexOf("\"uid\":") + 6);
-            FirstUID = FirstUID.Substring(0, FirstUID.IndexOf(",\""));
+            FirstUID = FirstUID.Substring(0, FirstUID.IndexOfAny(new char[] { ',', '}' }));
             // 第一个UID不是对端用户, 找第二个UID
             if (FirstUID.Equals(userInfo.UID.ToString()))
             {
                 // 第二个UID
                 string SecondUID = str.Substring(str.LastIndexOf("\"uid\":") + 6);
-                SecondUID = SecondUID.Substring(0, SecondUID.IndexOf(",\""));
+                SecondUID = SecondUID.Substring(0, SecondUID.IndexOfAny(new char[] { ',', '}' }));
                 // 房间号
                 string match_id = str.Substring(str.IndexOf("\"match_id\":") + 11);
-                match_id = match_id.Substring(0, match_id.IndexOf(",\""));
+                match_id = match_id.Substring(0, match_id.IndexOfAny(new char[] { ',', '}' }));
                 // 昵称
                 string UName = str.Substring(str.LastIndexOf("\"uname\":\"") + 9);
-                UName = UName.Substring(0, UName.IndexOf("\",\""));
+                UName = UName.Substring(0, UName.IndexOf('"'));
                 return new PKInfo
                 {
                     UID = int.Parse(SecondUID),
@@ -301,10 +317,10 @@ namespace BiliLiveRecorder
             {
                 // 房间号
                 string Init_id = str.Substring(str.IndexOf("\"init_id\":") + 10);
-                Init_id = Init_id.Substring(0, Init_id.IndexOf(",\""));
+                Init_id = Init_id.Substring(0, Init_id.IndexOfAny(new char[] { ',', '}' }));
                 // 昵称
                 string UName = str.Substring(str.IndexOf("\"uname\":\"") + 9);
-                UName = UName.Substring(0, UName.IndexOf("\",\""));
+                UName = UName.Substring(0, UName.IndexOf('"'));
                 return new PKInfo
                 {
                     UID = int.Parse(FirstUID),
