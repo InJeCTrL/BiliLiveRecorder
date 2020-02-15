@@ -347,7 +347,7 @@ namespace BiliLiveRecorder
                     string PKLiveURL = GetDownloadLink(pKInfo.RoomID);
                     if (PKLiveURL != null)
                     {
-                        PKDownloader = new LiveVideoDownloader(PKLiveURL, StartTime, "【PK双录】" + pKInfo.Name);
+                        PKDownloader = new LiveVideoDownloader(PKLiveURL, StartTime, pKInfo.Name + "【PK双录】");
                         PKDownloader.DownloadCompleted += PKDownloader_DownloadCompleted;
                         PKDownloader.Start();
                     }

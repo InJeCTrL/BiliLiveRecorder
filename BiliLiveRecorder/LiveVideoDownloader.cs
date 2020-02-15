@@ -99,7 +99,7 @@ namespace BiliLiveRecorder
             webClient = new WebClient();
             webClient.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 6.1; rv:73.0) Gecko/20100101 Firefox/73.0");
             webClient.DownloadFileCompleted += WebClient_DownloadFileCompleted;
-            OutFileName = UserName + "_" + StartTime.ToString("yyyy年MM月dd日HH时mm分ss秒");
+            OutFileName = StartTime.ToString("yyyy年MM月dd日HH时mm分ss秒") + "_" + UserName;
             webClient.DownloadFileAsync(new Uri(LiveVideoLink), OutFileName + ".flv", FileMode.Append);
         }
         /// <summary>
