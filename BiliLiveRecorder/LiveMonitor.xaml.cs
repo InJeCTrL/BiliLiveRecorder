@@ -214,7 +214,7 @@ namespace BiliLiveRecorder
         /// <returns>成功获取返回链接, 失败返回null</returns>
         private string GetDownloadLink(string RoomID)
         {
-            string str = FetchGetResponse("https://api.live.bilibili.com/room/v1/Room/playUrl?cid=" + RoomID);
+            string str = FetchGetResponse("https://api.live.bilibili.com/room/v1/Room/playUrl?cid=" + RoomID + "&qn=0&platform=web");
             if (str != null)
             {
                 // 通过特征字符串查找到的直播流地址
@@ -389,8 +389,15 @@ namespace BiliLiveRecorder
         /// <param name="e"></param>
         private void VideoDownloader_DownloadCompleted(object sender, EventArgs e)
         {
-            IsRecording = false;
-            network.Close();
+            try
+            {
+                IsRecording = false;
+                network.Close();
+            }
+            catch
+            {
+                ;
+            }
         }
         /// <summary>
         /// 等待直播视频流地址切换
