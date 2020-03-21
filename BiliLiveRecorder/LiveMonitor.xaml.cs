@@ -113,7 +113,14 @@ namespace BiliLiveRecorder
             {
                 this.Status.Content = "正在直播";
                 this.Status.Foreground = Brushes.Green;
-                this.MonitorStatus.Content = "下载直播流";
+                if (liveInfo.LiveVideoLink == null)
+                {
+                    this.MonitorStatus.Content = "直播流获取中...";
+                }
+                else
+                {
+                    this.MonitorStatus.Content = "下载直播流";
+                }
             }
             else
             {
@@ -126,12 +133,17 @@ namespace BiliLiveRecorder
         /// 获取get请求的传回数据
         /// </summary>
         /// <param name="URL">链接</param>
+        /// <param name="proxy">代理</param>
         /// <returns>传回页面字符串</returns>
-        private string FetchGetResponse(string URL)
+        private string FetchGetResponse(string URL, WebProxy proxy = null)
         {
             try
             {
                 WebRequest request = WebRequest.Create(URL);
+                if (proxy != null)
+                {
+                    request.Proxy = proxy;
+                }
                 request.Headers.Add(HttpRequestHeader.CacheControl, "max-age=0");
                 WebResponse response = request.GetResponse();
                 Stream s = response.GetResponseStream();
@@ -164,10 +176,17 @@ namespace BiliLiveRecorder
                 if (liveInfo.OnAir)
                 {
                     liveInfo.LiveVideoLink = GetDownloadLink(liveInfo.RoomID);
+                    this.Dispatcher.Invoke(SetRoomInfo);
+                    // 正确获取直播流地址
                     if (liveInfo.LiveVideoLink != null)
                     {
                         IsRecording = true;
                         DownloadLive();
+                        continue;
+                    }
+                    else
+                    {
+                        Thread.Sleep(30000);
                         continue;
                     }
                 }
@@ -215,13 +234,31 @@ namespace BiliLiveRecorder
         private string GetDownloadLink(string RoomID)
         {
             string str = FetchGetResponse("https://api.live.bilibili.com/room/v1/Room/playUrl?cid=" + RoomID + "&qn=0&platform=web");
-            if (str != null)
+            // 接口数据获取异常
+            if (str == null || str.IndexOf("\"durl\":[{\"url\":\"") == -1)
+            {
+                Proxy proxy = new Proxy();
+                while (!proxy.End)
+                {
+                    str = FetchGetResponse("http://api.live.bilibili.com/room/v1/Room/playUrl?cid=" + RoomID + "&qn=0&platform=web", proxy.GetOne());
+                    // 接口数据通过代理已正常获取
+                    if (str != null && str.IndexOf("\"durl\":[{\"url\":\"") != -1)
+                    {
+                        break;
+                    }
+                }
+            }
+            if (str != null && str.IndexOf("\"durl\":[{\"url\":\"") != -1)
             {
                 // 通过特征字符串查找到的直播流地址
                 str = str.Substring(str.IndexOf("\"durl\":[{\"url\":\"") + 16);
                 str = str.Substring(0, str.IndexOf('"')).Replace("\\u0026", "&");
+                return str;
             }
-            return str;
+            else
+            {
+                return null;
+            }
         }
         /// <summary>
         /// 发送直播间信息到弹幕服务器

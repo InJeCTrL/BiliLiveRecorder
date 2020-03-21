@@ -64,6 +64,7 @@
     </Compile>
     <Compile Include="LiveVideoDownloader.cs" />
     <Compile Include="PKInfo.cs" />
+    <Compile Include="Proxy.cs" />
     <Compile Include="UserInfo.cs" />
     <Page Include="LiveMonitor.xaml">
       <SubType>Designer</SubType>
