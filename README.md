@@ -18,9 +18,11 @@
 
 	4. 支持同时下载直播弹幕(XML)
 
-	5. 主播连麦、断开PK时自动分段（不稳定）
+	5. 获取直播流地址失败时自动尝试切换代理访问
 
-	6. 主播连麦PK时双方共同录制防止某方信号问题导致缺漏（不稳定）
+	6. 主播连麦、断开PK时自动分段（不稳定）
+
+	7. 主播连麦PK时双方共同录制防止某方信号问题导致缺漏（不稳定）
 
 * 界面预览
 
@@ -97,3 +99,11 @@
 		https://api.live.bilibili.com/av/v1/Pk/getInfoById?pk_id={PK_ID}
 
 		根据PK信息接口找到与当前主播连麦的对端主播, 实现双端录制
+
+---
+
+* 参考&引用
+
+	1. https://github.com/zyzsdy/biliroku
+
+	2. https://github.com/jiangxianli/ProxyIpLib
